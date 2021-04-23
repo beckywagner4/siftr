@@ -10,7 +10,7 @@ devtools::install_github("jack-davison/siftr")
 
 ## Important Functions
 
-Currently, the feature of the package is the ease of reading SIFT data. The key function is `read_sift`, which simply reads in SIFT data and returns a list of data frames, e.g.:
+Currently, the only feature of the package is simplifying the reading-in of SIFT data. The key function is `read_sift`, which simply reads in SIFT data and returns a list of data frames, e.g.:
 
 ```
 siftr::read_sift("~/Van sampling-drive 1-20210118-121331.csv")
