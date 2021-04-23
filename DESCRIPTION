@@ -1,0 +1,17 @@
+Package: siftr
+Title: Tools for handling SYFT / SIFT-MS data in WACL.
+Version: 0.0.0.9000
+Authors@R: 
+    person(given = "Jack",
+           family = "Davison",
+           role = c("aut", "cre"),
+           email = "jd1184@york.ac.uk",
+           comment = c(ORCID = "0000-0003-2653-6615"))
+Description: SIFT data can be a challenge to use. This package contains helper functions to assist in reading, processing and analysing SIFT-MS data.
+License: `use_ccby_license()`
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.1
+Imports: 
+    magrittr
