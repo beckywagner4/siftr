@@ -63,7 +63,7 @@ read_sift = function(file){
 
   prep_phase = raw[[2]] %>%
     janitor::remove_empty(which = c("rows", "cols")) %>%
-    tidyr::pivot_longer(`1`:`4`, names_to = "num", values_to = "intensity", names_transform = list(num = as.integer)) %>%
+    tidyr::pivot_longer(-c(1:2), names_to = "num", values_to = "intensity", names_transform = list(num = as.integer)) %>%
     janitor::clean_names()
 
   sample_phase = raw[[3]] %>%
