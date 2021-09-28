@@ -3,12 +3,13 @@
 #' @description Raw SIFT data is very messy and hard to use. This function reads SIFT data from a .csv and "tidies" each element to enhance usability. The output is a list of each individual table that the SIFT outputs, as well as the date and time the SIFT began working.
 #'
 #' @param file The file path for the SIFT .csv file.
+#' @param drop_prep Is the PREPARATION sub-data missing? TRUE/FALSE.
 #'
 #' @return A list.
 #' @export
 #'
 
-read_sift = function(file){
+read_sift = function(file, drop_prep = F, chatty = T){
 
   # Markers for the meta-data rows in the SIFT data
   flags = c("Mass Vs Time",
@@ -36,13 +37,13 @@ read_sift = function(file){
 
     if(start == 0){
 
-      df = suppressWarnings(readr::read_csv(file, col_types = readr::cols(), na = c(":"," ",""),
-                                            skip = start, n_max = end - start, col_names = F))
+      df = suppressMessages(suppressWarnings(readr::read_csv(file, col_types = readr::cols(), na = c(":"," ",""),
+                                            skip = start, n_max = end - start, col_names = F)))
 
     } else {
 
-      df = suppressWarnings(readr::read_csv(file, col_types = readr::cols(), na = c(":"," ",""),
-                                            skip = start, n_max = end - (start+2)))
+      df = suppressMessages(suppressWarnings(readr::read_csv(file, col_types = readr::cols(), na = c(":"," ",""),
+                                            skip = start, n_max = end - (start+2))))
 
     }
 
@@ -53,6 +54,8 @@ read_sift = function(file){
   # Map using the above function - returns a list.
   raw = purrr::map2(.x = start_ends$start, .y = start_ends$end, .f = ~read_data(start = .x, end = .y))
 
+  if(chatty){print("Read raw data")}
+
   # Clean and tidy each of the data frames in turn
   meta = raw[[1]] %>%
     janitor::remove_empty(which = c("rows", "cols")) %>%
@@ -61,76 +64,119 @@ read_sift = function(file){
     tidyr::pivot_wider(names_from = "X1", values_from = "X2") %>%
     janitor::clean_names()
 
-  prep_phase = raw[[2]] %>%
-    janitor::remove_empty(which = c("rows", "cols")) %>%
-    tidyr::pivot_longer(-c(1:2), names_to = "num", values_to = "intensity", names_transform = list(num = as.integer)) %>%
-    janitor::clean_names()
+  if(chatty){print("Read meta")}
 
-  sample_phase = raw[[3]] %>%
+  n = 0
+
+  if (drop_prep) {
+    n = n - 1
+  } else {
+    prep_phase = raw[[n+2]] %>%
+      janitor::remove_empty(which = c("rows", "cols")) %>%
+      tidyr::pivot_longer(-c(1:2), names_to = "num", values_to = "intensity", names_transform = list(num = as.integer)) %>%
+      janitor::clean_names()
+    if(chatty){print("Read prep_phase")}
+  }
+
+  sample_phase = raw[[n+3]] %>%
     dplyr::mutate(across(where(is.character), ~if_else(.x == "", NA_character_, .x))) %>%
     janitor::remove_empty(which = c("rows", "cols")) %>%
     tidyr::pivot_longer(-c(1:2), names_to = "num", values_to = "intensity", names_transform = list(num = as.integer)) %>%
     janitor::clean_names()
 
-  phase_mean_values = raw[[4]] %>%
+  if(chatty){print("Read sample_phase")}
+
+  phase_mean_values = raw[[n+4]] %>%
     janitor::remove_empty(which = c("rows", "cols")) %>%
     janitor::clean_names()
 
-  intensity_corrected = rbind(
-    raw[[5]] %>%
-      dplyr::select(X1, X2, contains("PREP")) %>%
+  if(chatty){print("Read phase_mean_values")}
+
+  intensity_corrected = raw[[n+5]] %>%
+    dplyr::select(1:2, contains("SAMPLE")) %>%
+    janitor::row_to_names(1) %>%
+    tidyr::pivot_longer(-c(1:2), names_to = "num", values_to = "intensity",
+                        names_transform = list(num = as.integer)) %>%
+    janitor::clean_names() %>%
+    dplyr::mutate(phase = "SAMPLE")
+
+  if(!drop_prep){
+    intensity_corrected_prep = raw[[n+5]] %>%
+      dplyr::select(1:2, contains("PREP")) %>%
       janitor::row_to_names(1) %>%
       tidyr::pivot_longer(-c(1:2), names_to = "num", values_to = "intensity",
-                   names_transform = list(num = as.integer)) %>%
+                          names_transform = list(num = as.integer)) %>%
       janitor::clean_names() %>%
-      dplyr::mutate(phase = "PREPARATION"),
+      dplyr::mutate(phase = "PREPARATION")
 
-    raw[[5]] %>%
-      dplyr::select(X1, X2, contains("SAMPLE")) %>%
-      janitor::row_to_names(1) %>%
-      tidyr::pivot_longer(-c(1:2), names_to = "num", values_to = "intensity",
-                   names_transform = list(num = as.integer)) %>%
-      janitor::clean_names() %>%
-      dplyr::mutate(phase = "SAMPLE")
-  )
+    intensity_corrected = rbind(intensity_corrected, intensity_corrected_prep)
 
-  time_vs_mass = raw[[6]] %>%
+  }
+
+  if(chatty){print("Read intensity_corrected")}
+
+  time_vs_mass = raw[[n+6]] %>%
     janitor::remove_empty(which = c("rows", "cols")) %>%
     tidyr::pivot_longer(-(1:10), names_to = "ion") %>%
     janitor::clean_names()
 
-  concentrations = raw[[7]] %>%
+  if(chatty){print("Read time_vs_mass")}
+
+  concentrations = raw[[n+7]] %>%
     janitor::remove_empty(which = c("rows", "cols")) %>%
     tidyr::pivot_longer(-(1:2), names_to = "ion", values_to = "concentration") %>%
     tidyr::separate(ion, into = c("product_ion", "compound", "reagent_ion", "unit"), sep = " \\(|;") %>%
     dplyr::mutate(dplyr::across(where(is.character), stringr::str_remove_all, "\\)")) %>%
     janitor::clean_names()
 
-  analytes = raw[[8]] %>%
+  if(chatty){print("Read concentrations")}
+
+  analytes = raw[[n+8]] %>%
     janitor::remove_empty(which = c("rows", "cols")) %>%
     tidyr::pivot_longer(-(1:2), names_to = "compound", values_to = "analyte") %>%
     janitor::clean_names()
 
-  summary = raw[[9]] %>%
+  if(chatty){print("Read analytes")}
+
+  summary = raw[[n+9]] %>%
     janitor::remove_empty(which = c("rows", "cols")) %>%
     janitor::clean_names()
+
+  if(chatty){print("Read summary")}
 
   # Pull start time from the metadata
   start_time = meta$job_start_date %>% lubridate::ymd_hms()
 
+  if(chatty){print("Extracted start_time")}
+
+  if(drop_prep){
+    sift = list(
+      time = start_time,
+      meta = meta,
+      sample_phase = sample_phase,
+      phase_mean_values = phase_mean_values,
+      intensity_corrected = intensity_corrected,
+      time_vs_mass = time_vs_mass,
+      concentrations = concentrations,
+      analytes = analytes,
+      summary = summary
+    )
+  } else {
+    sift = list(
+      time = start_time,
+      meta = meta,
+      prep_phase = prep_phase,
+      sample_phase = sample_phase,
+      phase_mean_values = phase_mean_values,
+      intensity_corrected = intensity_corrected,
+      time_vs_mass = time_vs_mass,
+      concentrations = concentrations,
+      analytes = analytes,
+      summary = summary
+    )
+  }
+
   # Assemble and return list
-  sift = list(
-    time = start_time,
-    meta = meta,
-    prep_phase = prep_phase,
-    sample_phase = sample_phase,
-    phase_mean_values = phase_mean_values,
-    intensity_corrected = intensity_corrected,
-    time_vs_mass = time_vs_mass,
-    concentrations = concentrations,
-    analytes = analytes,
-    summary = summary
-  )
 
   return(sift)
 

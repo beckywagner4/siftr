@@ -9,11 +9,11 @@
 #' @export
 #'
 
-read_many_sift = function(files, table = "concentrations"){
+read_many_sift = function(files, table = "concentrations", ...){
 
   read_specific = function(file, table = table){
 
-    all_sift = siftr::read_sift(file = file)
+    all_sift = siftr::read_sift(file = file, chatty = FALSE, ...)
 
     single_table = all_sift[[table]] %>%
       dplyr::mutate(start_time = all_sift$time) %>%

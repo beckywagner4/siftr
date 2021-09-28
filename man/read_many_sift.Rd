@@ -4,7 +4,7 @@
 \alias{read_many_sift}
 \title{Read Many SIFT Files}
 \usage{
-read_many_sift(files, table = "concentrations")
+read_many_sift(files, table = "concentrations", ...)
 }
 \arguments{
 \item{files}{A vector of file paths.}

@@ -4,10 +4,12 @@
 \alias{read_sift}
 \title{Read SIFT Data}
 \usage{
-read_sift(file)
+read_sift(file, drop_prep = F, chatty = T)
 }
 \arguments{
 \item{file}{The file path for the SIFT .csv file.}
+
+\item{drop_prep}{Is the PREPARATION sub-data missing? TRUE/FALSE.}
 }
 \value{
 A list.
