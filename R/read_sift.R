@@ -11,6 +11,8 @@
 
 read_sift = function(file, drop_prep = F, chatty = T){
 
+  if (chatty) {message(paste("Currently reading", file))}
+
   # Markers for the meta-data rows in the SIFT data
   flags = c("Mass Vs Time",
             "Cycle vs Product",
@@ -54,7 +56,7 @@ read_sift = function(file, drop_prep = F, chatty = T){
   # Map using the above function - returns a list.
   raw = purrr::map2(.x = start_ends$start, .y = start_ends$end, .f = ~read_data(start = .x, end = .y))
 
-  if(chatty){print("Read raw data")}
+  if(chatty){message("Read raw data")}
 
   # Clean and tidy each of the data frames in turn
   meta = raw[[1]] %>%
@@ -64,7 +66,7 @@ read_sift = function(file, drop_prep = F, chatty = T){
     tidyr::pivot_wider(names_from = "X1", values_from = "X2") %>%
     janitor::clean_names()
 
-  if(chatty){print("Read meta")}
+  if(chatty){message("Read meta")}
 
   n = 0
 
@@ -75,7 +77,7 @@ read_sift = function(file, drop_prep = F, chatty = T){
       janitor::remove_empty(which = c("rows", "cols")) %>%
       tidyr::pivot_longer(-c(1:2), names_to = "num", values_to = "intensity", names_transform = list(num = as.integer)) %>%
       janitor::clean_names()
-    if(chatty){print("Read prep_phase")}
+    if(chatty){message("Read prep_phase")}
   }
 
   sample_phase = raw[[n+3]] %>%
@@ -84,13 +86,13 @@ read_sift = function(file, drop_prep = F, chatty = T){
     tidyr::pivot_longer(-c(1:2), names_to = "num", values_to = "intensity", names_transform = list(num = as.integer)) %>%
     janitor::clean_names()
 
-  if(chatty){print("Read sample_phase")}
+  if(chatty){message("Read sample_phase")}
 
   phase_mean_values = raw[[n+4]] %>%
     janitor::remove_empty(which = c("rows", "cols")) %>%
     janitor::clean_names()
 
-  if(chatty){print("Read phase_mean_values")}
+  if(chatty){message("Read phase_mean_values")}
 
   intensity_corrected = raw[[n+5]] %>%
     dplyr::select(1:2, contains("SAMPLE")) %>%
@@ -113,14 +115,14 @@ read_sift = function(file, drop_prep = F, chatty = T){
 
   }
 
-  if(chatty){print("Read intensity_corrected")}
+  if(chatty){message("Read intensity_corrected")}
 
   time_vs_mass = raw[[n+6]] %>%
     janitor::remove_empty(which = c("rows", "cols")) %>%
     tidyr::pivot_longer(-(1:10), names_to = "ion") %>%
     janitor::clean_names()
 
-  if(chatty){print("Read time_vs_mass")}
+  if(chatty){message("Read time_vs_mass")}
 
   concentrations = raw[[n+7]] %>%
     janitor::remove_empty(which = c("rows", "cols")) %>%
@@ -129,25 +131,25 @@ read_sift = function(file, drop_prep = F, chatty = T){
     dplyr::mutate(dplyr::across(where(is.character), stringr::str_remove_all, "\\)")) %>%
     janitor::clean_names()
 
-  if(chatty){print("Read concentrations")}
+  if(chatty){message("Read concentrations")}
 
   analytes = raw[[n+8]] %>%
     janitor::remove_empty(which = c("rows", "cols")) %>%
     tidyr::pivot_longer(-(1:2), names_to = "compound", values_to = "analyte") %>%
     janitor::clean_names()
 
-  if(chatty){print("Read analytes")}
+  if(chatty){message("Read analytes")}
 
   summary = raw[[n+9]] %>%
     janitor::remove_empty(which = c("rows", "cols")) %>%
     janitor::clean_names()
 
-  if(chatty){print("Read summary")}
+  if(chatty){message("Read summary")}
 
   # Pull start time from the metadata
   start_time = meta$job_start_date %>% lubridate::ymd_hms()
 
-  if(chatty){print("Extracted start_time")}
+  if(chatty){message("Extracted start_time\n")}
 
   if(drop_prep){
     sift = list(

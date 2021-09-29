@@ -4,6 +4,7 @@
 #'
 #' @param files A vector of file paths.
 #' @param table A table from the SIFT data. One of "time", "meta", "prep_phase", "sample_phase", "phase_mean_values", "intensity_corrected", "time_vs_mass", "concentrations", "analytes" or "summary". Defaults to "concentrations".
+#' @param ... Arguments to pass to "read_sift"
 #'
 #' @return A tibble.
 #' @export

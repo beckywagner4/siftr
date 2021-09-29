@@ -10,6 +10,8 @@ read_many_sift(files, table = "concentrations", ...)
 \item{files}{A vector of file paths.}
 
 \item{table}{A table from the SIFT data. One of "time", "meta", "prep_phase", "sample_phase", "phase_mean_values", "intensity_corrected", "time_vs_mass", "concentrations", "analytes" or "summary". Defaults to "concentrations".}
+
+\item{...}{Arguments to pass to "read_sift"}
 }
 \value{
 A tibble.

@@ -3,6 +3,7 @@
 export("%>%")
 export(read_many_proc_sift)
 export(read_many_sift)
+export(read_many_sift2)
 export(read_proc_sift)
 export(read_sift)
 importFrom(magrittr,"%>%")
