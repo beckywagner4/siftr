@@ -79,7 +79,7 @@ read_sift = function(file, drop_prep = F, chatty = T){
   }
 
   sample_phase = raw[[n+3]] %>%
-    dplyr::mutate(across(where(is.character), ~if_else(.x == "", NA_character_, .x))) %>%
+    dplyr::mutate(across(where(is.character), ~dplyr::if_else(.x == "", NA_character_, .x))) %>%
     janitor::remove_empty(which = c("rows", "cols")) %>%
     tidyr::pivot_longer(-c(1:2), names_to = "num", values_to = "intensity", names_transform = list(num = as.integer)) %>%
     janitor::clean_names()
