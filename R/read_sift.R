@@ -1,6 +1,6 @@
 #' Read SIFT Data
 #'
-#' @description Raw SIFT data is very messy and hard to use. This function reads SIFT data from a .csv and "tidies" each element to enhance usability. The output is a list of each individual table that the SIFT outputs, as well as the date and time the SIFT began working.
+#' @description Raw SIFT data is very messy and hard to use. This function reads SIFT data from a .csv and "tidies" each element to enhance usability. The output is a list of each individual table that the SIFT outputs, as well as the date and time the SIFT began working. Also has functionality to specify if the PREPARATION PHASE is present or not.
 #'
 #' @param file The file path for the SIFT .csv file.
 #' @param drop_prep Is the PREPARATION sub-data missing? TRUE/FALSE.
