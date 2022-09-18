@@ -15,6 +15,8 @@ read_many_sift2(files, ...)
 A list of tibbles.
 }
 \description{
-This function is an alternative wrapper around "read_sift" to read in multiple SIFT .csv files. Unlike "read_many_sift", this function does
-not require specifying a table as it reads in all of them. All files are bound and labelled with the starting time of the run.
+This function is an alternative wrapper around "read_sift" to
+read in multiple SIFT .csv files. Unlike "read_many_sift", this function
+does not require specifying a table as it reads in all of them. All files
+are bound and labelled with the starting time of the run.
 }

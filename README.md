@@ -1,8 +1,4 @@
-<a href="https://github.com/jack-davison/siftr">
-  <img src="https://github.com/jack-davison/siftr/blob/main/siftr_logo.png" width="210" align="right">
-</a>
-
-# SIFT-R (siftr) 📦
+# SIFT-R {siftr} 📦 <img src="man/figures/logo.png" align="right" height="138" />
 
 Tools for streamlining the use of SIFT-MS data in WACL.
 

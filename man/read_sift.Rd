@@ -10,10 +10,17 @@ read_sift(file, drop_prep = F, chatty = T)
 \item{file}{The file path for the SIFT .csv file.}
 
 \item{drop_prep}{Is the PREPARATION sub-data missing? TRUE/FALSE.}
+
+\item{chatty}{\code{TRUE}/\code{FALSE}. Should the function communicate what
+it is doing? Useful for debugging.}
 }
 \value{
 A list.
 }
 \description{
-Raw SIFT data is very messy and hard to use. This function reads SIFT data from a .csv and "tidies" each element to enhance usability. The output is a list of each individual table that the SIFT outputs, as well as the date and time the SIFT began working.
+Raw SIFT data is very messy and hard to use. This function reads
+SIFT data from a .csv and "tidies" each element to enhance usability. The
+output is a list of each individual table that the SIFT outputs, as well as
+the date and time the SIFT began working. Also has functionality to specify
+if the PREPARATION PHASE is present or not.
 }

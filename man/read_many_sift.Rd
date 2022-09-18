@@ -9,7 +9,9 @@ read_many_sift(files, table = "concentrations", ...)
 \arguments{
 \item{files}{A vector of file paths.}
 
-\item{table}{A table from the SIFT data. One of "time", "meta", "prep_phase", "sample_phase", "phase_mean_values", "intensity_corrected", "time_vs_mass", "concentrations", "analytes" or "summary". Defaults to "concentrations".}
+\item{table}{A table from the SIFT data. One of "time", "meta", "prep_phase",
+"sample_phase", "phase_mean_values", "intensity_corrected", "time_vs_mass",
+"concentrations", "analytes" or "summary". Defaults to "concentrations".}
 
 \item{...}{Arguments to pass to "read_sift"}
 }
@@ -17,5 +19,9 @@ read_many_sift(files, table = "concentrations", ...)
 A tibble.
 }
 \description{
-This function is a wrapper around "read_sift" to read in multiple SIFT .csv files. The user must specify a specific table within the SIFT data (defaulting to "concentrations") and the function will output a single tibble with that table from all provided .csv files, tagged with the start time from each.
+This function is a wrapper around "read_sift" to read in
+multiple SIFT .csv files. The user must specify a specific table within the
+SIFT data (defaulting to "concentrations") and the function will output a
+single tibble with that table from all provided .csv files, tagged with the
+start time from each.
 }

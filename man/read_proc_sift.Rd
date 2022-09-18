@@ -13,5 +13,7 @@ read_proc_sift(file)
 A list.
 }
 \description{
-This is a function to read data that has already been processed by the SYFT into three tables - analyte concentrations, concentrations per reagent and concentrations per product.
+This is a function to read data that has already been processed
+by the SYFT into three tables - analyte concentrations, concentrations per
+reagent and concentrations per product.
 }

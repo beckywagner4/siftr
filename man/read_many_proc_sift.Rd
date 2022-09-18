@@ -9,11 +9,15 @@ read_many_proc_sift(files, table = "analyte_conc")
 \arguments{
 \item{files}{A vector of file paths.}
 
-\item{table}{A table from the SIFT data. One of "analyte_conc", "conc_per_reagent" or "conc_per_product". Defaults to "analyte_conc".}
+\item{table}{A table from the SIFT data. One of "analyte_conc",
+"conc_per_reagent" or "conc_per_product". Defaults to "analyte_conc".}
 }
 \value{
 A tibble.
 }
 \description{
-This function is a wrapper around "read_proc_sift" to read in multiple pre-processed SIFT .csv files. The user must specify a specific table within the SIFT data (defaulting to "analyte_conc") and the function will output a single tibble with that table from all provided .csv files.
+This function is a wrapper around "read_proc_sift" to read in
+multiple pre-processed SIFT .csv files. The user must specify a specific
+table within the SIFT data (defaulting to "analyte_conc") and the function
+will output a single tibble with that table from all provided .csv files.
 }
