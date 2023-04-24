@@ -14,7 +14,11 @@
 
 read_many_sift2 <- function(files, ...) {
   read_sift_tbl <- function(file) {
-    sift_data <- siftr::read_sift(file, ...)
+    sift_data <- siftr::read_sift(file, warn = TRUE, ...)
+
+    if(is.null(sift_data)){
+      return(NULL)
+    }
 
     lst_to_df <- function(n) {
       name <- names(sift_data)[n]
