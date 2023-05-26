@@ -8,14 +8,14 @@
 #'
 #' @param file The file path for the SIFT .csv file.
 #' @param drop_prep Is the PREPARATION sub-data missing? TRUE/FALSE.
-#' @param chatty \code{TRUE}/\code{FALSE}. Should the function communicate what
-#'   it is doing? Useful for debugging.
+#' @param chatty \code{TRUE}/\code{FALSE}. Should the function communicate what it is doing? Useful for debugging.
+#' @param warn logical. if a section of the file cannot be read, should a warning or error be thrown? Default FALSE leads to an error being produced. For use with \code{read_many_sift()} to skip bad files
 #'
 #' @return A list.
 #' @export
 #'
 
-read_sift <- function(file, drop_prep = F, chatty = T) {
+read_sift <- function(file, drop_prep = F, chatty = T, warn = FALSE) {
   if (chatty) {
     message(paste("Currently reading", file))
   }
@@ -68,12 +68,24 @@ read_sift <- function(file, drop_prep = F, chatty = T) {
   }
 
   # Clean and tidy each of the data frames in turn
-  meta <- raw[[1]] %>%
-    janitor::remove_empty(which = c("rows", "cols")) %>%
-    tidyr::drop_na(X2) %>%
-    dplyr::select(-X3) %>%
-    tidyr::pivot_wider(names_from = "X1", values_from = "X2") %>%
-    janitor::clean_names()
+  meta <- tryCatch({
+    raw[[1]] %>%
+      janitor::remove_empty(which = c("rows", "cols")) %>%
+      tidyr::drop_na(X2) %>%
+      dplyr::select(-X3) %>%
+      tidyr::pivot_wider(names_from = "X1", values_from = "X2") %>%
+      janitor::clean_names()},
+    error = function(e){NULL})
+
+  if(is.null(meta)){
+    if(warn){
+      warning(paste0("unable to read meta from file: ", file, " returning NULL"))
+    }else{
+      stop(paste0("unable to read meta from file: ", file))
+    }
+
+    return(NULL)
+  }
 
   if (chatty) {
     message("Read meta")
@@ -84,53 +96,112 @@ read_sift <- function(file, drop_prep = F, chatty = T) {
   if (drop_prep) {
     n <- n - 1
   } else {
-    prep_phase <- raw[[n + 2]] %>%
-      janitor::remove_empty(which = c("rows", "cols")) %>%
-      tidyr::pivot_longer(-c(1:2), names_to = "num", values_to = "intensity", names_transform = list(num = as.integer)) %>%
-      janitor::clean_names()
+
+    prep_phase <- tryCatch({
+      raw[[n + 2]] %>%
+        janitor::remove_empty(which = c("rows", "cols")) %>%
+        tidyr::pivot_longer(-c(1:2), names_to = "num", values_to = "intensity", names_transform = list(num = as.integer)) %>%
+        janitor::clean_names()},
+      error = function(e){NULL})
+
+    if(is.null(prep_phase)){
+      if(warn){
+        warning(paste0("unable to read prep_phase from file: ", file, " returning NULL"))
+      }else{
+        stop(paste0("unable to read prep_phase from file: ", file))
+      }
+      return(NULL)
+    }
+
     if (chatty) {
       message("Read prep_phase")
     }
   }
 
-  sample_phase <- raw[[n + 3]] %>%
-    dplyr::mutate(across(where(is.character), ~ dplyr::if_else(.x == "", NA_character_, .x))) %>%
-    janitor::remove_empty(which = c("rows", "cols")) %>%
-    tidyr::pivot_longer(-c(1:2), names_to = "num", values_to = "intensity", names_transform = list(num = as.integer)) %>%
-    janitor::clean_names()
+  sample_phase <- tryCatch({
+    raw[[n + 3]] %>%
+      dplyr::mutate(across(where(is.character), ~ dplyr::if_else(.x == "", NA_character_, .x))) %>%
+      janitor::remove_empty(which = c("rows", "cols")) %>%
+      tidyr::pivot_longer(-c(1:2), names_to = "num", values_to = "intensity", names_transform = list(num = as.integer)) %>%
+      janitor::clean_names()
+  },
+  error = function(e){NULL})
+
+  if(is.null(sample_phase)){
+    if(warn){
+      warning(paste0("unable to read sample_phase from file: ", file, " returning NULL"))
+    }else{
+      stop(paste0("unable to read sample_phase from file: ", file))
+    }
+    return(NULL)
+  }
 
   if (chatty) {
     message("Read sample_phase")
   }
 
-  phase_mean_values <- raw[[n + 4]] %>%
-    janitor::remove_empty(which = c("rows", "cols")) %>%
-    janitor::clean_names()
+  phase_mean_values <- tryCatch({
+    raw[[n + 4]] %>%
+      janitor::remove_empty(which = c("rows", "cols")) %>%
+      janitor::clean_names()
+    },
+    error = function(e){NULL})
+
+  if(is.null(phase_mean_values)){
+    if(warn){
+      warning(paste0("unable to read phase_mean_values from file: ", file, " returning NULL"))
+    }else{
+      stop(paste0("unable to read phase_mean_values from file: ", file))
+    }
+    return(NULL)
+  }
 
   if (chatty) {
     message("Read phase_mean_values")
   }
 
-  intensity_corrected <- raw[[n + 5]] %>%
-    dplyr::select(1:2, contains("SAMPLE")) %>%
-    janitor::row_to_names(1) %>%
-    tidyr::pivot_longer(-c(1:2),
-      names_to = "num", values_to = "intensity",
-      names_transform = list(num = as.integer)
-    ) %>%
-    janitor::clean_names() %>%
-    dplyr::mutate(phase = "SAMPLE")
-
-  if (!drop_prep) {
-    intensity_corrected_prep <- raw[[n + 5]] %>%
-      dplyr::select(1:2, contains("PREP")) %>%
+  intensity_corrected <- tryCatch({
+    raw[[n + 5]] %>%
+      dplyr::select(1:2, contains("SAMPLE")) %>%
       janitor::row_to_names(1) %>%
       tidyr::pivot_longer(-c(1:2),
-        names_to = "num", values_to = "intensity",
-        names_transform = list(num = as.integer)
+                          names_to = "num", values_to = "intensity",
+                          names_transform = list(num = as.integer)
       ) %>%
       janitor::clean_names() %>%
-      dplyr::mutate(phase = "PREPARATION")
+      dplyr::mutate(phase = "SAMPLE")},
+    error = function(e){NULL})
+
+  if(is.null(intensity_corrected)){
+    if(warn){
+      warning(paste0("unable to read intensity_corrected from file: ", file, " returning NULL"))
+    }else{
+      stop(paste0("unable to read intensity_corrected from file: ", file))
+    }
+    return(NULL)
+  }
+
+  if (!drop_prep) {
+    intensity_corrected_prep <- tryCatch({
+      raw[[n + 5]] %>%
+        dplyr::select(1:2, contains("PREP")) %>%
+        janitor::row_to_names(1) %>%
+        tidyr::pivot_longer(-c(1:2),
+                            names_to = "num", values_to = "intensity",
+                            names_transform = list(num = as.integer)
+        ) %>%
+        janitor::clean_names() %>%
+        dplyr::mutate(phase = "PREPARATION")},
+      error = function(e){NULL})
+
+    if(is.null(intensity_corrected_prep)){
+      if(warn){
+        warning(paste0("unable to read intensity_corrected_prep from file: ", file, " returning NULL"))
+      }else{
+        stop(paste0("unable to read intensity_corrected_prep from file: ", file))
+      }
+      return(NULL)
+    }
 
     intensity_corrected <- rbind(intensity_corrected, intensity_corrected_prep)
   }
@@ -139,38 +210,82 @@ read_sift <- function(file, drop_prep = F, chatty = T) {
     message("Read intensity_corrected")
   }
 
-  time_vs_mass <- raw[[n + 6]] %>%
-    janitor::remove_empty(which = c("rows", "cols")) %>%
-    tidyr::pivot_longer(-(1:10), names_to = "ion") %>%
-    janitor::clean_names()
+  time_vs_mass <- tryCatch({
+    raw[[n + 6]] %>%
+      janitor::remove_empty(which = c("rows", "cols")) %>%
+      tidyr::pivot_longer(-(1:10), names_to = "ion") %>%
+      janitor::clean_names()},
+    error = function(e){NULL})
+
+  if(is.null(time_vs_mass)){
+    if(warn){
+      warning(paste0("unable to read time_vs_mass from file: ", file, " returning NULL"))
+    }else{
+      stop(paste0("unable to read time_vs_mass from file: ", file))
+    }
+    return(NULL)
+  }
 
   if (chatty) {
     message("Read time_vs_mass")
   }
 
-  concentrations <- raw[[n + 7]] %>%
-    janitor::remove_empty(which = c("rows", "cols")) %>%
-    tidyr::pivot_longer(-(1:2), names_to = "ion", values_to = "concentration") %>%
-    tidyr::separate(ion, into = c("product_ion", "compound", "reagent_ion", "unit"), sep = " \\(|;") %>%
-    dplyr::mutate(dplyr::across(where(is.character), stringr::str_remove_all, "\\)")) %>%
-    janitor::clean_names()
+  concentrations <- tryCatch({
+    raw[[n + 7]] %>%
+      janitor::remove_empty(which = c("rows", "cols")) %>%
+      tidyr::pivot_longer(-(1:2), names_to = "ion", values_to = "concentration") %>%
+      tidyr::separate(ion, into = c("product_ion", "compound", "reagent_ion", "unit"), sep = " \\(|;") %>%
+      dplyr::mutate(dplyr::across(where(is.character), stringr::str_remove_all, "\\)")) %>%
+      janitor::clean_names()},
+    error = function(e){NULL})
+
+  if(is.null(concentrations)){
+    if(warn){
+      warning(paste0("unable to read concentrations from file: ", file, " returning NULL"))
+    }else{
+      stop(paste0("unable to read concentrations from file: ", file))
+    }
+    return(NULL)
+  }
 
   if (chatty) {
     message("Read concentrations")
   }
 
-  analytes <- raw[[n + 8]] %>%
-    janitor::remove_empty(which = c("rows", "cols")) %>%
-    tidyr::pivot_longer(-(1:2), names_to = "compound", values_to = "analyte") %>%
-    janitor::clean_names()
+  analytes <- tryCatch({
+    raw[[n + 8]] %>%
+      janitor::remove_empty(which = c("rows", "cols")) %>%
+      tidyr::pivot_longer(-(1:2), names_to = "compound", values_to = "analyte") %>%
+      janitor::clean_names()},
+    error = function(e){NULL})
+
+  if(is.null(analytes)){
+    if(warn){
+      warning(paste0("unable to read analytes from file: ", file, " returning NULL"))
+    }else{
+      stop(paste0("unable to read analytes from file: ", file))
+    }
+    return(NULL)
+  }
 
   if (chatty) {
     message("Read analytes")
   }
 
-  summary <- raw[[n + 9]] %>%
-    janitor::remove_empty(which = c("rows", "cols")) %>%
-    janitor::clean_names()
+  summary <- tryCatch({
+    raw[[n + 9]] %>%
+      janitor::remove_empty(which = c("rows", "cols")) %>%
+      janitor::clean_names()},
+    error = function(e){NULL})
+
+  if(is.null(summary)){
+    if(warn){
+      warning(paste0("unable to read summary from file: ", file, " returning NULL"))
+    }else{
+      stop(paste0("unable to read summary from file: ", file))
+    }
+    return(NULL)
+  }
 
   if (chatty) {
     message("Read summary")
