@@ -2,6 +2,8 @@
 
 Tools for streamlining the use of SIFT-MS data in WACL.
 
+Note: Maintenance of this package has been taken over by WACL at: https://github.com/wacl-york/siftr/ 
+
 To install, just write the following into your R console.
 
 ```
